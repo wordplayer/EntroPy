@@ -5,6 +5,7 @@ Created on Sun Mar 13 01:04:42 2016
 @author: Shashwat
 """
 import openpyxl as xl
+import numpy as np
 
 class BinarySystem(object):
     """
@@ -29,13 +30,14 @@ class BinarySystem(object):
         self.rhoB = data[5]
         self.massA = data[6]
         self.massB = data[7]
-        self.x1 = data[8]
-        self.etaSystem = data[9]
-        self.rhoSystem = data[10]
+        self.x1 = np.array(data[8])
+        self.x2 = 1-self.x1
+        self.etaSystem = np.array(data[9])
+        self.rhoSystem = np.array(data[10])
         self.temperature = data[11]
         self.reference = data[12]
         
-        self.initialized = True
+        self.initialized = True #for providing a flag that all data is available
         print "Binary System created successfully."
     
     def loadViscosityDataFromExcel(self, path):
@@ -79,9 +81,25 @@ class BinarySystem(object):
         """
         
         return self.compoundA + " + " + self.compoundB + " at " + str(self.temperature) + " K"
+    
+    def doBingham(self):
+        """ 
+        Params: None
         
+        returns 
+        
+        """
+        if self.initialized:
+            computedV = (self.x1)*(self.etaA)  +(self.x2)*(self.etaB)
+            absoluteDeviation = np.abs(self.etaSystem - computedV)
+            absoluteErrorPercentage = (absoluteDeviation/self.etaSystem)*100
+            averageAbsolutePercentageDeviation = np.mean(absoluteErrorPercentage)
+            
+        else:
+            print "No data availabele for the system."
+            
 """testing code below"""
 
 B = BinarySystem()
-data = B.loadViscosityDataFromExcel('Data.xlsx')
-B.create(data)
+#data = B.loadViscosityDataFromExcel('Data.xlsx')
+#B.create(data)
