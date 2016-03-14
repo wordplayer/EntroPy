@@ -6,6 +6,7 @@ Created on Sun Mar 13 01:04:42 2016
 """
 import openpyxl as xl
 import numpy as np
+import h5py as hdf
 
 class BinarySystem(object):
     """
@@ -14,14 +15,12 @@ class BinarySystem(object):
     """
     
     def __init__(self):
-        
         self.initialized = False
-        
+
     def create(self, data):
         """Assign various attributes required 
         for defining a binary system 
         """
-        
         self.compoundA = data[0]
         self.compoundB = data[1]
         self.etaA = data[2]
@@ -36,7 +35,6 @@ class BinarySystem(object):
         self.rhoSystem = np.array(data[10])
         self.temperature = data[11]
         self.reference = data[12]
-        
         self.initialized = True #for providing a flag that all data is available
         print "Binary System created successfully."
     
@@ -91,15 +89,25 @@ class BinarySystem(object):
         """
         if self.initialized:
             computedV = (self.x1)*(self.etaA)  +(self.x2)*(self.etaB)
-            absoluteDeviation = np.abs(self.etaSystem - computedV)
-            absoluteErrorPercentage = (absoluteDeviation/self.etaSystem)*100
-            averageAbsolutePercentageDeviation = np.mean(absoluteErrorPercentage)
+            ad = np.abs(self.etaSystem - computedV)
+            apd = (ad/self.etaSystem)*100
+            aapd = np.mean(apd)
+            print aapd
             
         else:
             print "No data availabele for the system."
             
+            
+    def doFrenkel(self):
+        pass
+    
+    def save(self):
+        pass
+    
+            
 """testing code below"""
 
 B = BinarySystem()
-#data = B.loadViscosityDataFromExcel('Data.xlsx')
-#B.create(data)
+data = B.loadViscosityDataFromExcel('Data.xlsx')
+B.create(data)
+B.doBingham()
