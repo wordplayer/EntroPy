@@ -113,7 +113,13 @@ class BinarySystem(object):
             apd = (ad/self.etaSystem)*100
             aapd = np.mean(apd)
             print aapd
-            
+    
+    def getAAPD(self,computedV):
+        ad = np.abs(self.etaSystem - computedV)
+        apd = (ad/self.etaSystem)*100
+        aapd = np.mean(apd)
+        return aapd
+        
     def save(self):
         pass
     
