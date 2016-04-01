@@ -98,9 +98,28 @@ class BinarySystem(object):
             print "No data availabele for the system."
             
             
-    def doFrenkel(self):
-        pass
+    def doKendallMunroe(self):
     
+        """
+        Params: None
+        
+        returns void
+        """
+    
+        if self.initialized:
+            computedV = (self.x1) * np.log(self.etaA) + (self.x2) * np.log(self.etaB)
+            computedV = np.exp(computedV)
+            ad = np.abs(self.etaSystem - computedV)
+            apd = (ad/self.etaSystem)*100
+            aapd = np.mean(apd)
+            print aapd
+    
+    def getAAPD(self,computedV):
+        ad = np.abs(self.etaSystem - computedV)
+        apd = (ad/self.etaSystem)*100
+        aapd = np.mean(apd)
+        return aapd
+        
     def save(self):
         pass
     
@@ -110,4 +129,4 @@ class BinarySystem(object):
 B = BinarySystem()
 data = B.loadViscosityDataFromExcel('Data.xlsx')
 B.create(data)
-B.doBingham()
+B.doKendallMunroe()
