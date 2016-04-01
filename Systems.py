@@ -88,10 +88,8 @@ class BinarySystem(object):
         
         """
         if self.initialized:
-            computedV = (self.x1)*(self.etaA)  +(self.x2)*(self.etaB)
-            ad = np.abs(self.etaSystem - computedV)
-            apd = (ad/self.etaSystem)*100
-            aapd = np.mean(apd)
+            computedEta = (self.x1)*(self.etaA)  +(self.x2)*(self.etaB)
+            aapd=self.getAAPD(computedEta)
             print aapd
             
         else:
@@ -107,15 +105,54 @@ class BinarySystem(object):
         """
     
         if self.initialized:
-            computedV = (self.x1) * np.log(self.etaA) + (self.x2) * np.log(self.etaB)
-            computedV = np.exp(computedV)
-            ad = np.abs(self.etaSystem - computedV)
-            apd = (ad/self.etaSystem)*100
-            aapd = np.mean(apd)
+            computedEta = (self.x1) * np.log(self.etaA) + (self.x2) * np.log(self.etaB)
+            computedEta = np.exp(computedEta)
+            aapd=self.getAAPD(computedEta)
             print aapd
     
-    def getAAPD(self,computedV):
-        ad = np.abs(self.etaSystem - computedV)
+    def doFrenkel(self):
+        
+        """
+        For non-ideal binary mixtures
+        
+        Params: None
+        
+        returns void
+        """
+        if self.initialized:
+            computedEta=np.exp((self.x1*self.x1*np.log(self.etaA))+(self.x2*self.x2*np.log(self.etaB))+(self.x1*self.x2*np.log((self.etaA+self.etaB)/2)))
+            aapd=self.getAAPD(computedEta)
+            print aapd
+    
+    def doHind(self):
+
+       """
+       Params: None
+
+       returns void
+       """
+       if self.initialized:
+           computedEta=(self.x1*self.x1*self.etaA)+(self.x2*self.x2*self.etaB)+(2*self.x1*self.x2*((self.etaA+self.etaB)/2))
+           aapd=self.getAAPD(computedEta)
+           print aapd
+    
+    def doEyring(self):
+        
+        """
+        Params: None
+        
+        returns void
+        """
+        if self.initialized:
+            V=((self.x1*self.massA)+(self.x2*self.massB))/self.rhoSystem
+            V1=self.massA/self.rhoA
+            V2=self.massB/self.rhoB
+            computedEta=((self.x1*np.log(self.etaA*V1))+(self.x2*np.log(self.etaB*V2)))/V
+            aapd=self.getAAPD(computedEta)
+            print aapd
+        
+    def getAAPD(self,computedEta):
+        ad = np.abs(self.etaSystem - computedEta)
         apd = (ad/self.etaSystem)*100
         aapd = np.mean(apd)
         return aapd
