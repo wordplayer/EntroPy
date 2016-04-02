@@ -120,7 +120,7 @@ class BinarySystem(object):
         returns void
         """
         if self.initialized:
-            computedEta=np.exp((self.x1*self.x1*np.log(self.etaA))+(self.x2*self.x2*np.log(self.etaB))+(self.x1*self.x2*np.log((self.etaA+self.etaB)/2)))
+            computedEta=np.exp((self.x1*self.x1*np.log(self.etaA))+(self.x2*self.x2*np.log(self.etaB))+(2*self.x1*self.x2*np.log((self.etaA+self.etaB)/2)))
             aapd=self.getAAPD(computedEta)
             print aapd
     
@@ -147,7 +147,7 @@ class BinarySystem(object):
             V=((self.x1*self.massA)+(self.x2*self.massB))/self.rhoSystem
             V1=self.massA/self.rhoA
             V2=self.massB/self.rhoB
-            computedEta=((self.x1*np.log(self.etaA*V1))+(self.x2*np.log(self.etaB*V2)))/V
+            computedEta=np.exp((self.x1*np.log(self.etaA*V1))+(self.x2*np.log(self.etaB*V2)))/V
             aapd=self.getAAPD(computedEta)
             print aapd
         
