@@ -60,8 +60,8 @@ class BinarySystem(object):
         rhoB = sheet['B6'].value
         temperature = sheet['D1'].value
         reference = sheet['D2'].value
-        massA = sheet['D3']
-        massB = sheet['D4']
+        massA = sheet['D3'].value
+        massB = sheet['D4'].value
         x1 = []
         etaSystem = []
         rhoSystem = []
@@ -93,7 +93,7 @@ class BinarySystem(object):
             print aapd
             
         else:
-            print "No data availabele for the system."
+            print "No data available for the system."
             
             
     def doKendallMunroe(self):
@@ -144,7 +144,7 @@ class BinarySystem(object):
         returns void
         """
         if self.initialized:
-            V=((self.x1*self.massA)+(self.x2*self.massB))/self.rhoSystem
+            V=((((self.x1)*(self.massA))+((self.x2)*(self.massB)))/self.rhoSystem)
             V1=self.massA/self.rhoA
             V2=self.massB/self.rhoB
             computedEta=np.exp((self.x1*np.log(self.etaA*V1))+(self.x2*np.log(self.etaB*V2)))/V
@@ -167,3 +167,7 @@ B = BinarySystem()
 data = B.loadViscosityDataFromExcel('Data.xlsx')
 B.create(data)
 B.doKendallMunroe()
+B.doBingham()
+B.doFrenkel()
+B.doHind()
+B.doEyring()
