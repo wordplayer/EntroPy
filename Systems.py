@@ -60,8 +60,8 @@ class BinarySystem(object):
         rhoB = sheet['B6'].value
         temperature = sheet['D1'].value
         reference = sheet['D2'].value
-        massA = sheet['D3']
-        massB = sheet['D4']
+        massA = sheet['D3'].value
+        massB = sheet['D4'].value
         x1 = []
         etaSystem = []
         rhoSystem = []
@@ -88,14 +88,12 @@ class BinarySystem(object):
         
         """
         if self.initialized:
-            computedV = (self.x1)*(self.etaA)  +(self.x2)*(self.etaB)
-            ad = np.abs(self.etaSystem - computedV)
-            apd = (ad/self.etaSystem)*100
-            aapd = np.mean(apd)
+            computedEta = (self.x1)*(self.etaA)  +(self.x2)*(self.etaB)
+            aapd=self.getAAPD(computedEta)
             print aapd
             
         else:
-            print "No data availabele for the system."
+            print "No data available for the system."
             
             
     def doKendallMunroe(self):
@@ -107,13 +105,120 @@ class BinarySystem(object):
         """
     
         if self.initialized:
-            computedV = (self.x1) * np.log(self.etaA) + (self.x2) * np.log(self.etaB)
-            computedV = np.exp(computedV)
-            ad = np.abs(self.etaSystem - computedV)
-            apd = (ad/self.etaSystem)*100
-            aapd = np.mean(apd)
+            computedEta = (self.x1) * np.log(self.etaA) + (self.x2) * np.log(self.etaB)
+            computedEta = np.exp(computedEta)
+            aapd=self.getAAPD(computedEta)
             print aapd
-            
+    
+    def doFrenkel(self):
+        
+        """
+        For non-ideal binary mixtures
+        
+        Params: None
+        
+        returns void
+        """
+        if self.initialized:
+            computedEta=np.exp((self.x1*self.x1*np.log(self.etaA))+(self.x2*self.x2*np.log(self.etaB))+(2*self.x1*self.x2*np.log((self.etaA+self.etaB)/2)))
+            aapd=self.getAAPD(computedEta)
+            print aapd
+    
+    def doHind(self):
+
+       """
+       Params: None
+
+       returns void
+       """
+       if self.initialized:
+           computedEta=(self.x1*self.x1*self.etaA)+(self.x2*self.x2*self.etaB)+(2*self.x1*self.x2*((self.etaA+self.etaB)/2))
+           aapd=self.getAAPD(computedEta)
+           print aapd
+    
+    def doEyring(self):
+        
+        """
+        Params: None
+        
+        returns void
+        """
+        if self.initialized:
+            V=((((self.x1)*(self.massA))+((self.x2)*(self.massB)))/self.rhoSystem)
+            V1=self.massA/self.rhoA
+            V2=self.massB/self.rhoB
+            computedEta=np.exp((self.x1*np.log(self.etaA*V1))+(self.x2*np.log(self.etaB*V2)))/V
+            aapd=self.getAAPD(computedEta)
+            print aapd
+    
+    def doSW(self):
+        """
+        Sutherland-Wassiljewa correlation
+        Params: None
+        returns void
+        """
+        
+        A11=1
+        A12=np.power((1+(np.sqrt(self.etaA/self.etaB)*np.power((self.massB/self.massA),0.375))),2)/4
+        A21=np.power((1+(np.sqrt(self.etaB/self.etaA)*np.power((self.massA/self.massB),0.375))),2)/4
+        A22=1
+        
+        """
+        Aij s are the Wassiljewa coefficients
+        """
+        
+        computedEta=((self.x1*self.etaA)/((A11*self.x1)+(A21*self.x2)))+((self.x2*self.etaB)/((A12*self.x1)+(A22*self.x2)))
+        aapd=self.getAAPD(computedEta)
+        print aapd
+    
+    def doMc3b(self):
+        """
+        McAllister 3-body correlation
+        Params: None
+        returns void
+        """
+        
+        t1=np.log((self.etaSystem/self.rhoSystem)/1000000)
+        t2=self.x1*self.x1*self.x1*np.log((self.etaA/self.rhoA)/1000000)
+        t3=self.x2*self.x2*self.x2*np.log((self.etaB/self.rhoB)/1000000)
+        t6=np.log(self.x1+(self.x2*self.massA/self.massB))
+        t7=3*self.x1*self.x1*self.x2*np.log((2+(self.massB/self.massA))/3)
+        t8=3*self.x1*self.x2*self.x2*np.log((1+(2*self.massB/self.massA))/3)
+        t9=self.x2*self.x2*self.x2*np.log(self.massB/self.massA)
+        Y=t1-t2-t3+t6-t7-t8-t9
+        X1=3*self.x1*self.x1*self.x2
+        X2=3*self.x1*self.x2*self.x2
+        X=np.column_stack((X1,X2))
+        X=np.matrix(X)
+        Y=np.matrix(Y)
+        theta=np.array(np.dot(np.dot(np.linalg.inv(np.dot(X.T,X)),X.T),Y.T))
+        computedEta=np.exp(t2+t3+(theta.item(0)*X1)+(theta.item(1)*X2)-t6+t7+t8+t9)*self.rhoSystem*1000000
+        aapd=self.getAAPD(computedEta)
+        print aapd
+    
+    def doGN(self):
+        """
+        Grunberg-Nissan correlation
+        Params: None
+        returns void
+        """
+        
+        t1=np.log(self.etaSystem)
+        t2=self.x1*np.log(self.etaA)
+        t3=self.x2*np.log(self.etaB)
+        Y=np.matrix(t1-t2-t3)
+        X=np.matrix(self.x1*self.x2)
+        G12=np.matrix(np.dot(np.dot(np.linalg.inv(np.dot(X,X.T)),X),Y.T))
+        computedEta=np.exp(t2+t3+np.dot(G12,X))
+        aapd=self.getAAPD(computedEta)
+        print aapd
+        
+    def getAAPD(self,computedEta):
+        ad = np.abs(self.etaSystem - computedEta)
+        apd = (ad/self.etaSystem)*100
+        aapd = np.mean(apd)
+        return aapd
+        
     def save(self):
         pass
     
@@ -124,3 +229,10 @@ B = BinarySystem()
 data = B.loadViscosityDataFromExcel('Data.xlsx')
 B.create(data)
 B.doKendallMunroe()
+B.doBingham()
+B.doFrenkel()
+B.doHind()
+B.doEyring()
+B.doSW()
+B.doMc3b()
+B.doGN()
