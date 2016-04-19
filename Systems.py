@@ -212,6 +212,26 @@ class BinarySystem(object):
         computedEta=np.exp(t2+t3+np.dot(G12,X))
         aapd=self.getAAPD(computedEta)
         print aapd
+    
+    def doRefutas(self):
+        """
+        Refutas correlation
+        Params: None
+        returns void
+        """
+        
+        kv1 = (self.etaA/self.rhoA)*1000
+        kv2 = (self.etaB/self.rhoB)*1000
+        kact = (self.etaSystem/self.rhoSystem)*1000
+        vbn1 = 14.534*np.log(np.log(kv1+0.8))+10.975
+        vbn2 = 14.534*np.log(np.log(kv2+0.8))+10.975
+        blend = self.x1*vbn1 + self.x2*vbn2
+        kv = np.exp(np.exp((blend-10.975)/14.534))-0.8
+        computedEta = (kv*self.rhoSystem)/1000
+        aapd = self.getAAPD(computedEta)
+        print aapd
+        
+        
         
     def getAAPD(self,computedEta):
         ad = np.abs(self.etaSystem - computedEta)
@@ -227,6 +247,7 @@ class BinarySystem(object):
 
 B = BinarySystem()
 data = B.loadViscosityDataFromExcel('Data.xlsx')
+print data
 B.create(data)
 B.doKendallMunroe()
 B.doBingham()
@@ -236,3 +257,4 @@ B.doEyring()
 B.doSW()
 B.doMc3b()
 B.doGN()
+B.doRefutas()
