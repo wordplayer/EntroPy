@@ -231,6 +231,20 @@ class BinarySystem(object):
         aapd = self.getAAPD(computedEta)
         print aapd
         
+    def doGambill(self):
+        """
+        Gambill correlation
+        Params: None
+        returns void
+        """
+        
+        kv1 = (self.etaA/self.rhoA)*1000
+        kv2 = (self.etaB/self.rhoB)*1000
+        kv = self.x1*np.power(kv1,1.0/3) + self.x2*np.power(kv2,1.0/3)
+        kv = np.power(kv,3)
+        computedEta = (kv*self.rhoSystem)/1000
+        aapd = self.getAAPD(computedEta)
+        print aapd
         
         
     def getAAPD(self,computedEta):
@@ -258,3 +272,4 @@ B.doSW()
 B.doMc3b()
 B.doGN()
 B.doRefutas()
+B.doGambill()
