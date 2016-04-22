@@ -79,6 +79,109 @@ class BinarySystem(object):
         """
         
         return self.compoundA + " + " + self.compoundB + " at " + str(self.temperature) + " K"
+        
+    
+    def save(self):
+        """Saves data in the HDF5 format
+        
+        """
+        
+        self.f = hdf.File("dbtest3.hdf5","a")
+        dt = hdf.special_dtype(vlen=str)
+        name = self.compoundA + " + " + self.compoundB + " @ " + str(self.temperature)
+        subgrp = self.f.create_group(name)
+        dset = subgrp.create_dataset("Specifics",(10,),dtype=dt)
+        dset[0] = self.compoundA
+        dset[1] = self.compoundB
+        dset[2] = self.reference
+        dset[3] = self.etaA
+        dset[4] = self.etaB
+        dset[5] = self.rhoA
+        dset[6] = self.rhoB
+        dset[7] = self.massA
+        dset[8] = self.massB
+        dset[9] = self.temperature
+        
+        dset = subgrp.create_dataset("Data",(3,len(self.x1)),dtype="f")
+        dset[0] = self.x1
+        dset[1] = self.etaSystem
+        dset[2] = self.rhoSystem
+        print "Saving data for " + name
+        
+    def showAll(self):
+        """
+        Prints all systems 
+        """
+        f = hdf.File("dbtest3.hdf5","r")
+        count = 0
+        for groupname in f:
+            print "Name of Compound A: " + f[groupname]["Specifics"][0]
+            print "Name of Compound B: " + f[groupname]["Specifics"][1]
+            print "Ref: " + str(f[groupname]["Specifics"][2])
+            print "Viscosity of Compound A: " + f[groupname]["Specifics"][3]
+            print "Viscosity of Compound B: " + f[groupname]["Specifics"][4]
+            print "Density of Compound A: " + f[groupname]["Specifics"][5]
+            print "Density of Compound B: " + f[groupname]["Specifics"][6]
+            print "Mass of Compound A: " + f[groupname]["Specifics"][7]
+            print "Mass of Compound B: " + f[groupname]["Specifics"][8]
+            print "Temperature: " + f[groupname]["Specifics"][9]
+            print " "
+            print "Mole Fractions: " + str(f[groupname]["Data"][0])
+            print "Eta System: " + str(f[groupname]["Data"][1])
+            print "Rho System: " + str(f[groupname]["Data"][2])
+            print " "
+            print "---------------------------------------------------------"
+            print " "
+            count+=1
+            print " "
+        print count
+        
+    def loadSystem(self,name):
+        """
+        Loads data from the database
+        
+        Params: Name of the system
+        stored as a std way. Eg: Pentane + Heptane @ 298.15
+        """
+        f = hdf.File("dbtest3.hdf5","r")
+        if name in f:
+            self.compoundA = f[name]["Specifics"][0]
+            self.compoundB = f[name]["Specifics"][1]
+            self.reference = f[name]["Specifics"][2]
+            self.etaA = float(f[name]["Specifics"][3])
+            self.etaB = float(f[name]["Specifics"][4])
+            self.rhoA = float(f[name]["Specifics"][5])
+            self.rhoB = float(f[name]["Specifics"][6])
+            self.massA = float(f[name]["Specifics"][7])
+            self.massB = float(f[name]["Specifics"][8])
+            self.temperature = float(f[name]["Specifics"][9])
+            self.x1 = f[name]["Data"][0]
+            self.x2 = 1-self.x1
+            self.etaSystem = f[name]["Data"][1]
+            self.rhoSystem = f[name]["Data"][2]
+            
+    def listAllSystems(self):
+        """
+        Lists all the systems
+        """
+        
+        f = hdf.File("dbtest3.hdf5","r")
+        for name in f:
+            print name
+            
+    def getDBFile(self):
+        """returns the database file pointer
+        """
+        return hdf.File("dbtest3.hdf5","a")
+    
+    def trial(self):
+        computedEta = (self.x1**2) * (self.etaA) + (self.x2**2) * (self.etaB) + self.x1 * self.x2 * (self.etaA *(self.massB/self.massA) + self.etaB*(self.massA/self.massB))
+        aapd = self.getAAPD(computedEta)
+        return aapd 
+        
+    def trial2(self):
+        computedEta= (np.exp((np.log(self.etaA/self.massA) - np.log(self.etaB/self.massB))*self.x1 + np.log(self.etaB/self.massB)) ) * (self.x1*self.massA + self.x2 * self.massB)
+        return self.getAAPD(computedEta)
     
     def doBingham(self):
         """ 
