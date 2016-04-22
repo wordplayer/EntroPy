@@ -274,11 +274,11 @@ class BinarySystem(object):
         aapd=self.getAAPD(computedEta)
         print aapd
     
-    #def doMc3b(self):
-       
-        #McAllister 3-body correlation
-        #Params: None
-        #returns void
+    def doMc3b(self):
+        """
+        McAllister 3-body correlation
+        Params: None
+        returns void
         """
         
         t1=np.log((self.etaSystem/self.rhoSystem)/1000000)
@@ -298,7 +298,7 @@ class BinarySystem(object):
         computedEta=np.exp(t2+t3+(theta.item(0)*X1)+(theta.item(1)*X2)-t6+t7+t8+t9)*self.rhoSystem*1000000
         aapd=self.getAAPD(computedEta)
         print aapd
-        """
+    
     def doGN(self):
         """
         Grunberg-Nissan correlation
@@ -348,73 +348,8 @@ class BinarySystem(object):
         computedEta = (kv*self.rhoSystem)/1000
         aapd = self.getAAPD(computedEta)
         print aapd
-    
-    def doWijk(self):
-        """
-        Wijk correlation
-        Params: None
-        returns void
-        """
         
-        t1=np.log(self.etaSystem)
-        t2=self.x1*self.x1*np.log(self.etaA)
-        t3=self.x2*self.x2*np.log(self.etaB)
-        Y=np.matrix(t1-t2-t3)
-        X=np.matrix(2*self.x1*self.x2).T
-        #theta=np.matrix(np.dot(np.dot(np.linalg.inv(np.dot(X,X.T)),X),Y.T))
-        theta=self.getTheta(X,Y)
-        computedEta=np.exp(t2+t3+X.T*theta.item(0))
-        aapd=self.getAAPD(computedEta)
-        print aapd
-    
-    def doKC(self):
-        """
-        Katti-Chaudhri correlation
-        Params:None
-        returns void
-        """
-        V=((self.x1*self.massA)+(self.x2*self.massB))/self.rhoSystem
-        V1=self.massA/self.rhoA
-        V2=self.massB/self.rhoB
-        t1=np.log(self.etaSystem*V)
-        t2=self.x1*np.log(self.etaA*V1)
-        t3=self.x2*np.log(self.etaB*V2)
-        Y=np.matrix(t1-t2-t3)
-        X=np.matrix(self.x1*self.x2).T
-        #A12=np.matrix(np.linalg.inv(X.T*X)*X.T*Y.T)
-        A12=self.getTheta(X,Y)
-        computedEta=np.exp((A12.item(0)*X.T)+t2+t3)/V
-        aapd=self.getAAPD(computedEta)
-        print aapd
         
-    def doTK(self):
-        """
-        Tamura-Kurata correlation
-        Params: None
-        returns void
-        """
-        #V=((self.x1*self.massA)+(self.x2*self.massB))/self.rhoSystem
-        #phi1=(self.x1*self.massA/self.rhoA)/V
-        #phi2=(self.x2*self.massB/self.rhoB)/V
-        V1=self.x1*self.massA/self.rhoA
-        V2=self.x2*self.massB/self.rhoB
-        phi1=V1/(V1+V2)
-        phi2=1-phi1
-        t1=self.etaSystem
-        t2=self.x1*phi1*self.etaA
-        t3=self.x2*phi2*self.etaB
-        Y=np.matrix(t1-t2-t3)
-        X=np.matrix(2*np.sqrt(self.x1*self.x2*phi1*phi2)).T
-        #T12=(np.linalg.inv(X.T*X)*X.T*Y.T)
-        T12=self.getTheta(X,Y)
-        computedEta=t2+t3+T12.item(0)*X.T
-        aapd=self.getAAPD(computedEta)
-        print aapd
-    
-    def getTheta(self,X,Y):
-        theta=np.array(np.linalg.inv(X.T*X)*X.T*Y.T)
-        return theta
-             
     def getAAPD(self,computedEta):
         ad = np.abs(self.etaSystem - computedEta)
         apd = (ad/self.etaSystem)*100
@@ -437,10 +372,7 @@ B.doFrenkel()
 B.doHind()
 B.doEyring()
 B.doSW()
-#B.doMc3b()
+B.doMc3b()
 B.doGN()
 B.doRefutas()
 B.doGambill()
-B.doWijk()
-B.doKC()
-B.doTK()
