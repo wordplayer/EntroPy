@@ -167,7 +167,7 @@ class BinarySystem(object):
         Aij s are the Wassiljewa coefficients
         """
         
-        computedEta=((self.x1*self.etaA)/((A11*self.x1)+(A12*self.x2)))+((self.x2*self.etaB)/((A21*self.x1)+(A22*self.x2)))
+        computedEta=((self.x1*self.etaA)/((A11*self.x1)+(A21*self.x2)))+((self.x2*self.etaB)/((A12*self.x1)+(A22*self.x2)))
         aapd=self.getAAPD(computedEta)
         print aapd
     
@@ -191,8 +191,7 @@ class BinarySystem(object):
         X=np.column_stack((X1,X2))
         X=np.matrix(X)
         Y=np.matrix(Y)
-        #theta=np.array(np.dot(np.dot(np.linalg.inv(np.dot(X.T,X)),X.T),Y.T))
-        theta=self.getTheta(X,Y)
+        theta=np.array(np.dot(np.dot(np.linalg.inv(np.dot(X.T,X)),X.T),Y.T))
         computedEta=np.exp(t2+t3+(theta.item(0)*X1)+(theta.item(1)*X2)-t6+t7+t8+t9)*self.rhoSystem*1000000
         aapd=self.getAAPD(computedEta)
         print aapd
@@ -208,130 +207,11 @@ class BinarySystem(object):
         t2=self.x1*np.log(self.etaA)
         t3=self.x2*np.log(self.etaB)
         Y=np.matrix(t1-t2-t3)
-        X=np.matrix(self.x1*self.x2).T
-        #G12=np.matrix(np.dot(np.dot(np.linalg.inv(np.dot(X,X.T)),X),Y.T))
-        G12=self.getTheta(X,Y)
-        computedEta=np.exp(t2+t3+X.T*G12.item(0))
+        X=np.matrix(self.x1*self.x2)
+        G12=np.matrix(np.dot(np.dot(np.linalg.inv(np.dot(X,X.T)),X),Y.T))
+        computedEta=np.exp(t2+t3+np.dot(G12,X))
         aapd=self.getAAPD(computedEta)
         print aapd
-    
-    def doWijk(self):
-        """
-        Wijk correlation
-        Params: None
-        returns void
-        """
-        
-        t1=np.log(self.etaSystem)
-        t2=self.x1*self.x1*np.log(self.etaA)
-        t3=self.x2*self.x2*np.log(self.etaB)
-        Y=np.matrix(t1-t2-t3)
-        X=np.matrix(2*self.x1*self.x2).T
-        #theta=np.matrix(np.dot(np.dot(np.linalg.inv(np.dot(X,X.T)),X),Y.T))
-        theta=self.getTheta(X,Y)
-        computedEta=np.exp(t2+t3+X.T*theta.item(0))
-        aapd=self.getAAPD(computedEta)
-        print aapd
-    
-    def doMc4b(self):
-        """
-        McAllister 4-body correlation
-        Params: None
-        returns void
-        """
-        
-        t1=np.log((self.etaSystem/self.rhoSystem)/1000000)
-        t2=np.power(self.x1,4)*np.log((self.etaA/self.rhoA)/1000000)
-        t6=np.power(self.x2,4)*np.log((self.etaB/self.rhoB)/1000000)
-        t7=np.log(self.x1+(self.x2*self.massB/self.massA))
-        t8=4*np.power(self.x1,3)*self.x2*np.log((3+(self.massB/self.massA))/4)
-        t9=6*np.power(self.x1,2)*np.power(self.x2,2)*np.log((1+(self.massB/self.massA))/2)
-        t10=4*self.x1*np.power(self.x2,3)*np.log((1+(3*self.massB/self.massA))/4)
-        t11=np.power(self.x2,4)*np.log(self.massB/self.massA)
-        Y=np.matrix(t1-t2-t6+t7-t8-t9-t10-t11)
-        X1=np.matrix(4*(np.power(self.x1,3)*self.x2))
-        X2=np.matrix(6*(np.power(self.x1,2)*np.power(self.x2,2)))
-        X3=np.matrix(4*(self.x1*np.power(self.x2,3)))
-        X=np.matrix(np.hstack((X1.T,X2.T,X3.T)))
-        #theta=np.array((np.dot(np.dot(np.linalg.inv(np.dot(X.T,X)),X.T),Y.T)))
-        #theta=np.array(np.linalg.inv(X.T*X)*X.T*Y.T)
-        theta=self.getTheta(X,Y)
-        computedEta=1000000*np.matrix(self.rhoSystem).T*np.matrix(np.exp(t2+(theta.item(0)*X1)+(theta.item(1)*X2)+(theta.item(2)*X3)+t6-t7+t8+t9+t10+t11))
-        aapd=self.getAAPD(computedEta)
-        print aapd
-    
-    def doKC(self):
-        """
-        Katti-Chaudhri correlation
-        Params:None
-        returns void
-        """
-        V=((self.x1*self.massA)+(self.x2*self.massB))/self.rhoSystem
-        V1=self.massA/self.rhoA
-        V2=self.massB/self.rhoB
-        t1=np.log(self.etaSystem*V)
-        t2=self.x1*np.log(self.etaA*V1)
-        t3=self.x2*np.log(self.etaB*V2)
-        Y=np.matrix(t1-t2-t3)
-        X=np.matrix(self.x1*self.x2).T
-        #A12=np.matrix(np.linalg.inv(X.T*X)*X.T*Y.T)
-        A12=self.getTheta(X,Y)
-        computedEta=np.exp((A12.item(0)*X.T)+t2+t3)/V
-        aapd=self.getAAPD(computedEta)
-        print aapd
-    """
-    def doMc4b1(self):
-        
-        #McAllister 4-body correlation
-        #Params:None
-        #returns void
-        
-        t1=np.log((self.etaSystem/self.rhoSystem)/1000000)
-        t2=np.power(self.x1,4)*np.log((self.etaA/self.rhoA)/1000000)
-        t6=np.power(self.x2,4)*np.log((self.etaB/self.rhoB)/1000000)
-        t7=np.log(self.x1+(self.x2*self.massB/self.massA))
-        t8=4*np.power(self.x1,3)*self.x2*np.log((3+(self.massB/self.massA))/4)
-        t9=6*np.power(self.x1,2)*np.power(self.x2,2)*np.log((1+(self.massB/self.massA))/2)
-        t10=4*self.x1*np.power(self.x2,3)*np.log((1+(3*self.massB/self.massA))/4)
-        t11=np.power(self.x2,4)*np.log(self.massB/self.massA)
-        Y=np.matrix(t1-t2-t6+t7-t8-t9-t10-t11)
-        X1=np.matrix(4*np.power(self.x1,3)*self.x2)
-        X2=np.matrix(6*np.power(self.x1,2)*np.power(self.x2,2))
-        X3=np.matrix(4*self.x1*np.power(self.x2,3))
-        X=np.matrix(np.hstack((X1.T,X2.T,X3.T)))
-        theta=np.array(np.linalg.inv(X.T*X)*X.T*Y.T)
-        computedEta=1000000*np.matrix(self.rhoSystem).T*np.matrix(np.exp(t2+(X1*theta.item(0))+(X2*theta.item(1))+(X3*theta.item(2))+t6-t7+t8+t9+t10+t11))
-        aapd=self.getAAPD(computedEta)
-        print aapd
-    """ 
-    
-    def doTK(self):
-        """
-        Tamura-Kurata correlation
-        Params: None
-        returns void
-        """
-        #V=((self.x1*self.massA)+(self.x2*self.massB))/self.rhoSystem
-        #phi1=(self.x1*self.massA/self.rhoA)/V
-        #phi2=(self.x2*self.massB/self.rhoB)/V
-        V1=self.x1*self.massA/self.rhoA
-        V2=self.x2*self.massB/self.rhoB
-        phi1=V1/(V1+V2)
-        phi2=1-phi1
-        t1=self.etaSystem
-        t2=self.x1*phi1*self.etaA
-        t3=self.x2*phi2*self.etaB
-        Y=np.matrix(t1-t2-t3)
-        X=np.matrix(2*np.sqrt(self.x1*self.x2*phi1*phi2)).T
-        #T12=(np.linalg.inv(X.T*X)*X.T*Y.T)
-        T12=self.getTheta(X,Y)
-        computedEta=t2+t3+T12.item(0)*X.T
-        aapd=self.getAAPD(computedEta)
-        print aapd
-    
-    def getTheta(self,X,Y):
-        theta=np.array(np.linalg.inv(X.T*X)*X.T*Y.T)
-        return theta
         
     def getAAPD(self,computedEta):
         ad = np.abs(self.etaSystem - computedEta)
@@ -356,8 +236,3 @@ B.doEyring()
 B.doSW()
 B.doMc3b()
 B.doGN()
-B.doWijk()
-B.doMc4b()
-B.doKC()
-#B.doMc4b1()
-B.doTK()
