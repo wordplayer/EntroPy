@@ -349,7 +349,23 @@ class BinarySystem(object):
         aapd = self.getAAPD(computedEta)
         print aapd
         
+    def getGibbsFreeEnergy(self):
+        """
+        Gibbs Free Energy for System
+        Params: None
+        returns: None
+        """
         
+        sysVol = (self.x1*self.massA+self.x2*self.massB)/self.rhoSystem
+        sysVol = sysVol*np.power(10,-6.0)
+        self.etaA = self.etaA * np.power(10,-3.0)
+        self.etaB = self.etaB * np.power(10,-3.0)
+        vol1 = (self.massA/self.rhoA)* np.power(10,-6.0)
+        vol2 = (self.massB/self.rhoB)* np.power(10,-6.0)
+        delGStar = 8.314*self.temperature*(np.log(self.etaSystem*(np.power(10,-3.0)))-(self.x1*np.log(self.etaA*vol1)+self.x2*np.log(self.etaB*vol2)))
+        print delGStar
+    
+
     def getAAPD(self,computedEta):
         ad = np.abs(self.etaSystem - computedEta)
         apd = (ad/self.etaSystem)*100
@@ -376,3 +392,5 @@ B.doMc3b()
 B.doGN()
 B.doRefutas()
 B.doGambill()
+B.getGibbsFreeEnergy()
+
