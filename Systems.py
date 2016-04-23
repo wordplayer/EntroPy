@@ -36,7 +36,7 @@ class BinarySystem(object):
         self.temperature = data[11]
         self.reference = data[12]
         self.initialized = True #for providing a flag that all data is available
-        print "Binary System created successfully."
+        return True
     
     def loadViscosityDataFromExcel(self, path):
         """
@@ -193,7 +193,7 @@ class BinarySystem(object):
         if self.initialized:
             computedEta = (self.x1)*(self.etaA)  +(self.x2)*(self.etaB)
             aapd=self.getAAPD(computedEta)
-            print aapd
+            return aapd
             
         else:
             print "No data available for the system."
@@ -211,7 +211,7 @@ class BinarySystem(object):
             computedEta = (self.x1) * np.log(self.etaA) + (self.x2) * np.log(self.etaB)
             computedEta = np.exp(computedEta)
             aapd=self.getAAPD(computedEta)
-            print aapd
+            return aapd
     
     def doFrenkel(self):
         
@@ -225,7 +225,7 @@ class BinarySystem(object):
         if self.initialized:
             computedEta=np.exp((self.x1*self.x1*np.log(self.etaA))+(self.x2*self.x2*np.log(self.etaB))+(2*self.x1*self.x2*np.log((self.etaA+self.etaB)/2)))
             aapd=self.getAAPD(computedEta)
-            print aapd
+            return aapd
     
     def doHind(self):
 
@@ -237,7 +237,7 @@ class BinarySystem(object):
        if self.initialized:
            computedEta=(self.x1*self.x1*self.etaA)+(self.x2*self.x2*self.etaB)+(2*self.x1*self.x2*((self.etaA+self.etaB)/2))
            aapd=self.getAAPD(computedEta)
-           print aapd
+           return aapd
     
     def doEyring(self):
         
@@ -252,7 +252,7 @@ class BinarySystem(object):
             V2=self.massB/self.rhoB
             computedEta=np.exp((self.x1*np.log(self.etaA*V1))+(self.x2*np.log(self.etaB*V2)))/V
             aapd=self.getAAPD(computedEta)
-            print aapd
+            return aapd
     
     def doSW(self):
         """
@@ -270,34 +270,9 @@ class BinarySystem(object):
         Aij s are the Wassiljewa coefficients
         """
         
-        computedEta=((self.x1*self.etaA)/((A11*self.x1)+(A21*self.x2)))+((self.x2*self.etaB)/((A12*self.x1)+(A22*self.x2)))
+        computedEta=((self.x1*self.etaA)/((A11*self.x1)+(A12*self.x2)))+((self.x2*self.etaB)/((A21*self.x1)+(A22*self.x2)))
         aapd=self.getAAPD(computedEta)
-        print aapd
-    
-    def doMc3b(self):
-        """
-        McAllister 3-body correlation
-        Params: None
-        returns void
-        """
-        
-        t1=np.log((self.etaSystem/self.rhoSystem)/1000000)
-        t2=self.x1*self.x1*self.x1*np.log((self.etaA/self.rhoA)/1000000)
-        t3=self.x2*self.x2*self.x2*np.log((self.etaB/self.rhoB)/1000000)
-        t6=np.log(self.x1+(self.x2*self.massA/self.massB))
-        t7=3*self.x1*self.x1*self.x2*np.log((2+(self.massB/self.massA))/3)
-        t8=3*self.x1*self.x2*self.x2*np.log((1+(2*self.massB/self.massA))/3)
-        t9=self.x2*self.x2*self.x2*np.log(self.massB/self.massA)
-        Y=t1-t2-t3+t6-t7-t8-t9
-        X1=3*self.x1*self.x1*self.x2
-        X2=3*self.x1*self.x2*self.x2
-        X=np.column_stack((X1,X2))
-        X=np.matrix(X)
-        Y=np.matrix(Y)
-        theta=np.array(np.dot(np.dot(np.linalg.inv(np.dot(X.T,X)),X.T),Y.T))
-        computedEta=np.exp(t2+t3+(theta.item(0)*X1)+(theta.item(1)*X2)-t6+t7+t8+t9)*self.rhoSystem*1000000
-        aapd=self.getAAPD(computedEta)
-        print aapd
+        return aapd
     
     def doGN(self):
         """
@@ -314,7 +289,7 @@ class BinarySystem(object):
         G12=np.matrix(np.dot(np.dot(np.linalg.inv(np.dot(X,X.T)),X),Y.T))
         computedEta=np.exp(t2+t3+np.dot(G12,X))
         aapd=self.getAAPD(computedEta)
-        print aapd
+        return aapd
     
     def doRefutas(self):
         """
@@ -332,7 +307,7 @@ class BinarySystem(object):
         kv = np.exp(np.exp((blend-10.975)/14.534))-0.8
         computedEta = (kv*self.rhoSystem)/1000
         aapd = self.getAAPD(computedEta)
-        print aapd
+        return aapd
         
     def doGambill(self):
         """
@@ -344,11 +319,76 @@ class BinarySystem(object):
         kv1 = (self.etaA/self.rhoA)*1000
         kv2 = (self.etaB/self.rhoB)*1000
         kv = self.x1*np.power(kv1,1.0/3) + self.x2*np.power(kv2,1.0/3)
-        kv = np.power(kv,3)
+        kv = np.power(kv,3.0)
         computedEta = (kv*self.rhoSystem)/1000
         aapd = self.getAAPD(computedEta)
-        print aapd
+        return aapd
+    
+    def doWijk(self):
+        """
+        Wijk correlation
+        Params: None
+        returns void
+        """
         
+        t1=np.log(self.etaSystem)
+        t2=self.x1*self.x1*np.log(self.etaA)
+        t3=self.x2*self.x2*np.log(self.etaB)
+        Y=np.matrix(t1-t2-t3)
+        X=np.matrix(2*self.x1*self.x2).T
+        #theta=np.matrix(np.dot(np.dot(np.linalg.inv(np.dot(X,X.T)),X),Y.T))
+        theta=self.getTheta(X,Y)
+        computedEta=np.exp(t2+t3+X.T*theta.item(0))
+        aapd=self.getAAPD(computedEta)
+        return aapd
+    
+    def doKC(self):
+        """
+        Katti-Chaudhri correlation
+        Params:None
+        returns void
+        """
+        V=((self.x1*self.massA)+(self.x2*self.massB))/self.rhoSystem
+        V1=self.massA/self.rhoA
+        V2=self.massB/self.rhoB
+        t1=np.log(self.etaSystem*V)
+        t2=self.x1*np.log(self.etaA*V1)
+        t3=self.x2*np.log(self.etaB*V2)
+        Y=np.matrix(t1-t2-t3)
+        X=np.matrix(self.x1*self.x2).T
+        #A12=np.matrix(np.linalg.inv(X.T*X)*X.T*Y.T)
+        A12=self.getTheta(X,Y)
+        computedEta=np.exp((A12.item(0)*X.T)+t2+t3)/V
+        aapd=self.getAAPD(computedEta)
+        return aapd
+        
+    def doTK(self):
+        """
+        Tamura-Kurata correlation
+        Params: None
+        returns void
+        """
+        #V=((self.x1*self.massA)+(self.x2*self.massB))/self.rhoSystem
+        #phi1=(self.x1*self.massA/self.rhoA)/V
+        #phi2=(self.x2*self.massB/self.rhoB)/V
+        V1=self.x1*self.massA/self.rhoA
+        V2=self.x2*self.massB/self.rhoB
+        phi1=V1/(V1+V2)
+        phi2=1-phi1
+        t1=self.etaSystem
+        t2=self.x1*phi1*self.etaA
+        t3=self.x2*phi2*self.etaB
+        Y=np.matrix(t1-t2-t3)
+        X=np.matrix(2*np.sqrt(self.x1*self.x2*phi1*phi2)).T
+        #T12=(np.linalg.inv(X.T*X)*X.T*Y.T)
+        T12=self.getTheta(X,Y)
+        computedEta=t2+t3+T12.item(0)*X.T
+        aapd=self.getAAPD(computedEta)
+        return aapd
+    
+    def getTheta(self,X,Y):
+        theta=np.array(np.linalg.inv(X.T*X)*X.T*Y.T)
+        return theta
         
     def getAAPD(self,computedEta):
         ad = np.abs(self.etaSystem - computedEta)
@@ -356,23 +396,54 @@ class BinarySystem(object):
         aapd = np.mean(apd)
         return aapd
         
-    def save(self):
-        pass
+    def getGibbsFreeEnergy(self):
+        
+        """
+        Gibbs Free Energy for System
+        Params: None
+        returns: None
+        """
+        sysVol = (self.x1*self.massA+self.x2*self.massB)/self.rhoSystem
+        sysVol = sysVol*10**-6
+        print sysVol
+        self.etaA = self.etaA * 10**-3
+        self.etaB = self.etaB * 10**-3
+        vol1 = (self.massA/self.rhoA)*10**-6
+        vol2 = (self.massB/self.rhoB)*10**-6
+        delGStar = 8.314*self.temperature*(np.log(self.etaSystem*10**-3)-(self.x1*np.log(self.etaA*vol1)+self.x2*np.log(self.etaB*vol2)))
+        return delGStar
     
-            
+    def getAllAAPD(self):
+        return [self.doBingham(), self.doFrenkel(), self.doKendallMunroe(), self.doHind(), self.doRefutas(), self.doSW(), self.doGambill(), self.doGN(), self.doWijk(), self.doMc3b()]
+     
+
+    def doMc3b(self):
+        ketaA = (self.etaA/self.rhoA)/1000000.0
+        ketaB = (self.etaB/self.rhoB)/1000000.0
+        keta = (self.etaSystem/self.rhoSystem)/1000000.0
+        term1 = np.log(keta)
+        term2 = (self.x1**3.0)*np.log(ketaA)
+        term5 = (self.x2**3.0)*np.log(ketaB)
+        term6 = np.log(self.x1 + (self.x2*self.massB/self.massA))
+        term7 = 3.0*((self.x1)**2.0)*self.x2*np.log((2.0+(self.massB/self.massA))/3.0)
+        term8 = 3.0*self.x1*((self.x2)**2.0)*np.log((1.0+(2.0*self.massB/self.massA))/3.0)
+        term9 = (self.x2**3.0)*np.log(self.massB/self.massA)
+        Y = term1 - term2 - term5 + term6 - term7 - term8 - term9
+        X1 = 3.0*(self.x1**2)*self.x2
+        X2 = 3.0*(self.x2**2)*self.x1
+        X = np.matrix([X1.T,X2.T]).T
+        Y = np.matrix(Y).T
+        theta = np.dot(np.linalg.inv(np.dot(X.T,X)),np.dot(X.T,Y))
+        Y = term2 + X1*theta[0].item() + X2*theta[1].item() + term5 - term6 + term7 + term8 + term9;
+        computedKV = np.exp(Y)
+        computedEta = computedKV*self.rhoSystem*1000000
+        return self.getAAPD(computedEta)
+        
 """testing code below"""
 
 B = BinarySystem()
 data = B.loadViscosityDataFromExcel('Data.xlsx')
-print data
 B.create(data)
-B.doKendallMunroe()
-B.doBingham()
-B.doFrenkel()
-B.doHind()
-B.doEyring()
-B.doSW()
-B.doMc3b()
-B.doGN()
-B.doRefutas()
-B.doGambill()
+
+
+
