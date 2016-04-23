@@ -361,7 +361,7 @@ class BinarySystem(object):
         computedEta=np.exp((A12.item(0)*X.T)+t2+t3)/V
         aapd=self.getAAPD(computedEta)
         return aapd
-        
+
     def doTK(self):
         """
         Tamura-Kurata correlation
@@ -390,31 +390,32 @@ class BinarySystem(object):
         theta=np.array(np.linalg.inv(X.T*X)*X.T*Y.T)
         return theta
         
-    def getAAPD(self,computedEta):
-        ad = np.abs(self.etaSystem - computedEta)
-        apd = (ad/self.etaSystem)*100
-        aapd = np.mean(apd)
-        return aapd
-        
     def getGibbsFreeEnergy(self):
-        
         """
         Gibbs Free Energy for System
         Params: None
         returns: None
         """
+        
         sysVol = (self.x1*self.massA+self.x2*self.massB)/self.rhoSystem
-        sysVol = sysVol*10**-6
-        print sysVol
-        self.etaA = self.etaA * 10**-3
-        self.etaB = self.etaB * 10**-3
-        vol1 = (self.massA/self.rhoA)*10**-6
-        vol2 = (self.massB/self.rhoB)*10**-6
-        delGStar = 8.314*self.temperature*(np.log(self.etaSystem*10**-3)-(self.x1*np.log(self.etaA*vol1)+self.x2*np.log(self.etaB*vol2)))
+        sysVol = sysVol*np.power(10,-6.0)
+        self.etaA = self.etaA * np.power(10,-3.0)
+        self.etaB = self.etaB * np.power(10,-3.0)
+        vol1 = (self.massA/self.rhoA)* np.power(10,-6.0)
+        vol2 = (self.massB/self.rhoB)* np.power(10,-6.0)
+        delGStar = 8.314*self.temperature*(np.log(self.etaSystem*(np.power(10,-3.0)))-(self.x1*np.log(self.etaA*vol1)+self.x2*np.log(self.etaB*vol2)))
         return delGStar
     
+
+    def getAAPD(self,computedEta):
+        ad = np.abs(self.etaSystem - computedEta)
+        apd = (ad/self.etaSystem)*100
+        aapd = np.mean(apd)
+        return aapd
+
+    
     def getAllAAPD(self):
-        return [self.doBingham(), self.doFrenkel(), self.doKendallMunroe(), self.doHind(), self.doRefutas(), self.doSW(), self.doGambill(), self.doGN(), self.doWijk(), self.doMc3b()]
+        return [self.doBingham(), self.doFrenkel(), self.doKendallMunroe(), self.doHind(), self.doRefutas(), self.doSW(), self.doGambill(), self.doGN(), self.doWijk(), self.doKC(), self.doTK(), self.doMc3b()]
      
 
     def doMc3b(self):
@@ -444,6 +445,3 @@ class BinarySystem(object):
 B = BinarySystem()
 data = B.loadViscosityDataFromExcel('Data.xlsx')
 B.create(data)
-
-
-
