@@ -107,6 +107,7 @@ class BinarySystem(object):
         dset[1] = self.etaSystem
         dset[2] = self.rhoSystem
         print "Saving data for " + name
+        self.f.close()
         
     def showAll(self):
         """
@@ -445,3 +446,7 @@ class BinarySystem(object):
 B = BinarySystem()
 data = B.loadViscosityDataFromExcel('Data.xlsx')
 B.create(data)
+B.save()
+B.f.close()
+
+
